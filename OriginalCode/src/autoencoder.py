@@ -93,7 +93,7 @@ def define_loss(network, params):
     Create the loss functions.
 
     Arguments:
-        network - Dictionary object containing the elements of the network architecture.
+        network - Dictionary object contai  ning the elements of the network architecture.
         This will be the output of the full_network() function.
     """
     x = network['x']
