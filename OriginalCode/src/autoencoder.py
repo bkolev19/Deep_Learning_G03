@@ -498,3 +498,6 @@ def z_derivative_order2(input, dx, ddx, weights, biases, activation='elu'):
         dz = tf.matmul(dz, weights[-1])
         ddz = tf.matmul(ddz, weights[-1])
     return dz,ddz
+
+
+
