@@ -13,7 +13,6 @@ def library_size(n, poly_order, use_sine=False, include_constant=True):
         l -= 1
     return l
 
-
 def sindy_library(X, poly_order, include_sine=False):
     m,n = X.shape
     l = library_size(n, poly_order, include_sine, True)
