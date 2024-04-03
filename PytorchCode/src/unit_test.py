@@ -52,8 +52,8 @@ params = {'activation': 'sigmoid',
 model = Autoencoder(params)
 
 # DATA
-x = torch.rand(1, 8)
-dx = torch.rand(1, 8)
+x = torch.rand(3, 8)
+dx = torch.rand(3, 8)
 
 
 epochs = 10
