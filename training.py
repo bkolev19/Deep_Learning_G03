@@ -25,8 +25,8 @@ def train_network(training_data, val_data, params):
 
 
 
-    for i in tqdm(params['max_epochs'], desc='Epochs_Loop'):
-        for j in range(batch_iter):
+    for i in range(params['max_epochs']):
+        for j in tqdm(range(batch_iter), desc='Batch_Loop'):
             batch_idxs = np.arange(j*params['batch_size'], (j+1)*params['batch_size'])
             train_dict = create_feed_dictionary(training_data, params, idxs=batch_idxs)
             x          = train_dict['x:0']
@@ -39,7 +39,7 @@ def train_network(training_data, val_data, params):
             optimizer.step()
 
         if params['print_progress'] and (i % params['print_frequency'] == 0):
-                validation_losses.append(model.loss_func(feed_dict=validation_dict)) # MIGHT NEED .detach().numpy()
+                validation_losses.append(model.loss_func())
 
         if params['sequential_thresholding'] and (i % params['threshold_frequency'] == 0) and (i > 0):
             params['coefficient_mask'] = np.abs(model.sindy_coefficients) > params['coefficient_threshold']
@@ -64,7 +64,7 @@ def train_network(training_data, val_data, params):
     results_dict['sindy_predict_norm_x'] = sindy_predict_norm_x
     results_dict['sindy_predict_norm_z'] = sindy_predict_norm_z
     results_dict['sindy_coefficients'] = sindy_coefficients
-    results_dict['loss_decoder'] = final_losses
+    # results_dict['loss_decoder'] = final_losses
     results_dict['validation_losses'] = np.array(validation_losses)
     results_dict['sindy_model_terms'] = np.array(sindy_model_terms)
 
