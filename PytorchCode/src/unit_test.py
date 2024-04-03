@@ -8,26 +8,12 @@ from autoencoder import Autoencoder
 params = {'activation': 'sigmoid',
         'batch_size': 1,
         'coefficient_initialization': 'constant',
-        'coefficient_mask': np.array([[False,  True, False],
-            [False, False, False],
-            [False,  True, False],
-            [ True, False,  True],
-            [False,  True, False],
-            [ True, False,  True],
-            [False, False, False],
-            [False, False, False],
-            [ True, False,  True],
-            [False,  True, False],
-            [False, False, False],
-            [False, False, False],
-            [False, False, False],
-            [False, False, False],
-            [False, False, False],
-            [False, False, False],
-            [False, False, False],
-            [False, False, False],
-            [False, False, False],
-            [False, False, False]]),
+        'coefficient_mask': np.array([[False,  True],
+            [False, False],
+            [False,  True],
+            [ True, False],
+            [False,  True],
+            [ True, False]]),
         'coefficient_threshold': 0.1,
         'epoch_size': 512000,
         'include_sine': False,
@@ -45,15 +31,15 @@ params = {'activation': 'sigmoid',
         'print_frequency': 100,
         'print_progress': True,
         'refinement_epochs': 1001,
-        'sequential_thresholding': False,
+        'sequential_thresholding': True,
         'threshold_frequency': 500,
         'widths': [4, 3]}
 
 model = Autoencoder(params)
 
 # DATA
-x = torch.rand(1, 8)
-dx = torch.rand(1, 8)
+x = torch.rand(3, 8)
+dx = torch.rand(3, 8)
 
 
 epochs = 10
