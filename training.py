@@ -14,13 +14,17 @@ def train_network(training_data, val_data, params):
 
     validation_dict   = create_feed_dictionary(val_data, params, idxs=None)
     x_norm            = np.mean(val_data['x']**2)
-    sindy_model_terms = [np.sum(params['coefficient_mask'])]
+    
     if params['model_order'] == 1:
         sindy_predict_norm_x = np.mean(val_data['dx']**2)
     else:
         sindy_predict_norm_x = np.mean(val_data['ddx']**2)
 
-    
+    validation_losses = []
+    sindy_model_terms = [np.sum(params['coefficient_mask'])]
+
+
+
     for i in tqdm(params['max_epochs'], desc='Epochs_Loop'):
         for j in range(batch_iter):
             batch_idxs = np.arange(j*params['batch_size'], (j+1)*params['batch_size'])
@@ -33,6 +37,9 @@ def train_network(training_data, val_data, params):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+
+        if params['print_progress'] and (i % params['print_frequency'] == 0):
+                validation_losses.append(model.loss_func(feed_dict=validation_dict)) # MIGHT NEED .detach().numpy()
 
         if params['sequential_thresholding'] and (i % params['threshold_frequency'] == 0) and (i > 0):
             params['coefficient_mask'] = np.abs(model.sindy_coefficients) > params['coefficient_threshold']
