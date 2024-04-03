@@ -56,8 +56,10 @@ class Autoencoder(torch.nn.Module):
         self.seq_thresholding = params['sequential_thresholding']
         if self.seq_thresholding:
             self.mask = params['coefficient_mask']
+            self.loss_func = self.custom_loss_refined
         else:
             self.mask = None
+            self.loss_func = self.custom_loss_unrefined
         
         # Encoder
         encoder_layers = [torch.nn.Linear(self.input_dim, self.hidden_dims[0])]
@@ -176,7 +178,31 @@ class Autoencoder(torch.nn.Module):
             return torch.matmul(Theta, self.sindy_coefficients)
 
     # Loss
-    def custom_loss(self):
+    # Call self.loss_func() to get the loss, rather than the specific loss function
+    def custom_loss_unrefined(self):
+        """Custom loss function for the autoencoder
+        Returns:
+            torch.Tensor: Loss value
+        """
+        # Decoder loss
+        loss_decoder = torch.nn.functional.mse_loss(self.x_hat, self.x)
+
+        # SINDy loss x and z
+        if self.ddx is not None:
+            losses_sindy_x = torch.nn.functional.mse_loss(self.ddx_hat, self.ddx)
+            losses_sindy_z = torch.nn.functional.mse_loss(self.ddz, self.sindy_ddz)
+        else:
+            losses_sindy_x = torch.nn.functional.mse_loss(self.dx_hat, self.dx)
+            losses_sindy_z = torch.nn.functional.mse_loss(self.dz, self.sindy_dz)
+
+        # Total loss
+        loss = self.lambda_0 * loss_decoder \
+               + self.lambda_1 * losses_sindy_x \
+               + self.lambda_2 * losses_sindy_z \
+
+        return loss
+    
+    def custom_loss_refined(self):
         """Custom loss function for the autoencoder
         Returns:
             torch.Tensor: Loss value
@@ -197,9 +223,7 @@ class Autoencoder(torch.nn.Module):
         loss = self.lambda_0 * loss_decoder \
                + self.lambda_1 * losses_sindy_x \
                + self.lambda_2 * losses_sindy_z \
-        
-        if not self.seq_thresholding:
-            loss += self.lambda_3 * losses_sindy_regularization
+               + self.lambda_3 * losses_sindy_regularization
 
         return loss
 
@@ -360,6 +384,7 @@ if __name__ == '__main__':
             'sequential_thresholding': False,
             'threshold_frequency': 500,
             'widths': [4, 3]}
+    
     model = Autoencoder(params)
 
     # DATA
