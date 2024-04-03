@@ -142,7 +142,23 @@ class Autoencoder(torch.nn.Module):
                                             create_graph=True, retain_graph=True)[0]
                 grads_list.append(grads)
             first_grads = torch.cat(grads_list, dim=0)
-            dz = torch.matmul(first_grads, dx.T)
+            dz = torch.matmul(first_grads, dx.T).squeeze().unsqueeze(0)
+
+            if ddx is not None:
+                x_temp = x
+                x_temp.requires_grad = True
+                grads2_list = []
+                for i in range(dz.size(1)):
+                    grad_outputs = torch.zeros_like(dz)
+                    grad_outputs[:,i] = 1
+                    grads = torch.autograd.grad(outputs=dz, inputs=x_temp,
+                                                grad_outputs=grad_outputs,
+                                                create_graph=True, retain_graph=True)[0]
+                    grads2_list.append(grads)
+                second_grads = torch.cat(grads2_list, dim=0)
+                ddz = torch.matmul(second_grads, ddx.T).squeeze().unsqueeze(0)
+            else:
+                ddz = None
 
         else:
             dz = torch.zeros_like(self.z)
@@ -161,12 +177,25 @@ class Autoencoder(torch.nn.Module):
                     grads_list.append(grads)
                 first_grads = torch.cat(grads_list, dim=0)
                 dz[i] = torch.matmul(first_grads, dx[i].unsqueeze(0).T).squeeze()
+            if ddx is not None:
+                for i in range(x.shape[0]):
+                    x_temp = x
+                    x_temp.requires_grad = True
+                    dz_temp = dz[i].unsqueeze(0)
+                    z_temp = self.encoder(x_temp)
+                    grads2_list = []
+                    for i in range(dz_temp.size(1)):
+                        grad_outputs = torch.zeros_like(dz_temp)
+                        grad_outputs[:,i] = 1
+                        grads = torch.autograd.grad(outputs=dz_temp, inputs=x_temp,
+                                                    grad_outputs=grad_outputs,
+                                                    create_graph=True, retain_graph=True)[0]
+                        grads2_list.append(grads)
+                    second_grads = torch.cat(grads2_list, dim=0)
+                    ddz[i] = torch.matmul(second_grads, ddx[i].unsqueeze(0).T).squeeze()
+            else:
+                ddz = None
         
-        if ddx is not None:
-            second_grads = torch.autograd.grad(first_grads, x, grad_outputs=torch.ones(first_grads.shape), create_graph=True)[0]
-            ddz = second_grads * ddx
-        else:
-            ddz = None
         return dz, ddz
 
     def compute_derivatives_z2x(self, z, dz, ddz=None):
@@ -177,11 +206,9 @@ class Autoencoder(torch.nn.Module):
             ddz (torch.Tensor): Second derivative of the latent state
         Returns:
             torch.Tensor: Derivatives of the input data"""
-        
         if z.shape[0] == 1:
             grads_list = []
             z_temp = z
-            z_temp.requires_grad = True
             x_temp = self.decoder(z_temp)
             # Compute gradient for each output element
             for i in range(x_temp.size(1)):
@@ -192,7 +219,23 @@ class Autoencoder(torch.nn.Module):
                                             create_graph=True, retain_graph=True)[0]
                 grads_list.append(grads)
             first_grads = torch.cat(grads_list, dim=0)
-            dx = torch.matmul(first_grads, dz.T)
+            dx = torch.matmul(first_grads, dz.T).squeeze().unsqueeze(0)
+
+            if ddz is not None:
+                z_temp = z
+                z_temp.requires_grad = True
+                grads2_list = []
+                for i in range(dx.size(1)):
+                    grad_outputs = torch.zeros_like(dx)
+                    grad_outputs[:,i] = 1
+                    grads = torch.autograd.grad(outputs=dx, inputs=z_temp,
+                                                grad_outputs=grad_outputs,
+                                                create_graph=True, retain_graph=True)[0]
+                    grads2_list.append(grads)
+                second_grads = torch.cat(grads2_list, dim=0)
+                ddx = torch.matmul(second_grads, ddz.T).squeeze().unsqueeze(0)
+            else:
+                ddx = None
 
         else:
             dx = torch.zeros_like(self.x)
@@ -210,12 +253,25 @@ class Autoencoder(torch.nn.Module):
                     grads_list.append(grads)
                 first_grads = torch.cat(grads_list, dim=0)
                 dx[i] = torch.matmul(first_grads, dz[i].unsqueeze(0).T).squeeze()
-
-        if ddz is not None:
-            second_grads = torch.autograd.grad(first_grads, z, grad_outputs=torch.ones(first_grads.shape), create_graph=True)[0]
-            ddx = second_grads * ddz
-        else:
-            ddx = None
+            if ddz is not None:
+                for i in range(z.shape[0]):
+                    z_temp = z
+                    z_temp.requires_grad = True
+                    dx_temp = dx[i].unsqueeze(0)
+                    x_temp = self.decoder(z_temp)
+                    grads2_list = []
+                    for i in range(dx_temp.size(1)):
+                        grad_outputs = torch.zeros_like(dx_temp)
+                        grad_outputs[:,i] = 1
+                        grads = torch.autograd.grad(outputs=dx_temp, inputs=z_temp,
+                                                    grad_outputs=grad_outputs,
+                                                    create_graph=True, retain_graph=True)[0]
+                        grads2_list.append(grads)
+                    second_grads = torch.cat(grads2_list, dim=0)
+                    ddx[i] = torch.matmul(second_grads, ddz[i].unsqueeze(0).T).squeeze()
+            else:
+                ddx = None
+        
         return dx, ddx
 
     def sindy(self, mask, secondOrder=False):
