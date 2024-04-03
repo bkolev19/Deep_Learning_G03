@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
-import pickle
 import numpy as np
 from autoencoder import Autoencoder
     

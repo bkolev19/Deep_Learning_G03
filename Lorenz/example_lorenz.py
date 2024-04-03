@@ -1,9 +1,9 @@
 import numpy as np
 from scipy.integrate import odeint
-from scipy.special import legendre, chebyt
+from scipy.special import legendre
 import sys
-sys.path.append('../../src')
-from sindy_utils import library_size
+sys.path.append('../')
+from autoencoder import library_size
 
 
 def get_lorenz_data(n_ics, noise_strength=0):
