@@ -54,6 +54,7 @@ class Autoencoder(torch.nn.Module):
         self.seq_thresholding = params['sequential_thresholding']
         if self.seq_thresholding:
             self.mask = params['coefficient_mask']
+            self.sindy_w_mask = (self.sindy_coefficients * self.mask).float()
             self.loss_func = self.custom_loss_refined
         else:
             self.mask = None
@@ -289,7 +290,8 @@ class Autoencoder(torch.nn.Module):
         if self.seq_thresholding:
             if mask is not None:
                 self.mask = mask
-            return torch.matmul(Theta, self.sindy_coefficients * self.mask)
+                self.sindy_w_mask = (self.sindy_coefficients * self.mask).float()
+            return torch.matmul(Theta, self.sindy_w_mask)
         else:
             return torch.matmul(Theta, self.sindy_coefficients)
 
