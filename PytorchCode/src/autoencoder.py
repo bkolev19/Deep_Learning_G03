@@ -277,7 +277,7 @@ class Autoencoder(torch.nn.Module):
         else:
             losses_sindy_x = torch.nn.functional.mse_loss(self.dx_hat, self.dx)
             losses_sindy_z = torch.nn.functional.mse_loss(self.dz, self.sindy_dz)
-        losses_sindy_regularization = torch.norm(torch.abs(self.sindy_coefficients), dim=1)
+        losses_sindy_regularization = torch.norm(torch.abs(self.sindy_coefficients))
 
         # Total loss
         loss = self.lambda_0 * loss_decoder \
