@@ -59,13 +59,12 @@ dx = torch.rand(1, 8)
 epochs = 10
 # optim = torch.optim.Adam(loss, 0.001)
 optim = torch.optim.Adam(model.parameters(), 0.001)
-
-for epoch in range(epochs):
+for epoch in range(
     # Forward pass
     outputs = model.forward([x, dx])
     loss = model.loss_func()
     print(loss)
-    # qBackward pass
+    # Backward pass
     optim.zero_grad()
     loss.backward()
     # Update Weights
