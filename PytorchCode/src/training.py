@@ -118,6 +118,14 @@ import pickle
 import numpy as np
 from autoencoder import full_network, define_loss
 
+def train_batch()
+
+
+
+
+
+
+
 def train_network(training_data, val_data, params):
     # SET UP NETWORK
     autoencoder_network = full_network(params)
