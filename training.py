@@ -78,8 +78,8 @@ def train_network(training_data, val_data, params, device: torch.device = device
 
 
 
-    for i in range(params['max_epochs']):
-        for j in tqdm(range(batch_iter), desc='Batch_Loop'):
+    for i in tqdm(range(params['max_epochs']), desc='Epochs_Loop'):
+        for j in (range(batch_iter)):
             batch_idxs = np.arange(j*params['batch_size'], (j+1)*params['batch_size'])
             train_dict = create_feed_dictionary(training_data, params, idxs=batch_idxs)
             x          = train_dict['x']
