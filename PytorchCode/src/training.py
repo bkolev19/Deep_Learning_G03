@@ -19,7 +19,6 @@ def create_feed_dictionary(data, params, idxs=None):
     feed_dict['learning_rate:0'] = torch.tensor(params['learning_rate'], dtype=torch.float32)
     return feed_dict
 
-
 def train_network(training_data, val_data, params):
     model       = Autoencoder(params)
     optimizer   = torch.optim.Adam(model.parameters(), 0.001)
@@ -27,7 +26,7 @@ def train_network(training_data, val_data, params):
 
     validation_dict   = create_feed_dictionary(val_data, params, idxs=None)
     x_norm            = np.mean(val_data['x']**2)
-    
+
     if params['model_order'] == 1:
         sindy_predict_norm_x = np.mean(val_data['dx']**2)
     else:
@@ -53,7 +52,6 @@ def train_network(training_data, val_data, params):
 
         if params['print_progress'] and (i % params['print_frequency'] == 0):
             validation_losses.append(model.loss_func())
-
         if params['sequential_thresholding'] and (i % params['threshold_frequency'] == 0) and (i > 0):
             params['coefficient_mask'] = np.abs(model.sindy_coefficients) > params['coefficient_threshold']
             validation_dict['coefficient_mask:0'] = params['coefficient_mask']
@@ -69,6 +67,7 @@ def train_network(training_data, val_data, params):
     else:
         sindy_predict_norm_z = np.mean((model.ddz(validation_dict['ddx']))**2)
     sindy_coefficients = model.sindy_coefficients
+
     
 
     results_dict = {}
@@ -77,7 +76,6 @@ def train_network(training_data, val_data, params):
     results_dict['sindy_predict_norm_x'] = sindy_predict_norm_x
     results_dict['sindy_predict_norm_z'] = sindy_predict_norm_z
     results_dict['sindy_coefficients'] = sindy_coefficients
-    # results_dict['loss_decoder'] = final_losses
     results_dict['validation_losses'] = np.array(validation_losses)
     results_dict['sindy_model_terms'] = np.array(sindy_model_terms)
 

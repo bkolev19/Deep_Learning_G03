@@ -17,6 +17,24 @@ def test_order2():
                 [ True, False, False],
                 [ True, False, False],
                 [ True, False, False],
+                [ True, False, False],
+                [False,  True, False],
+                [False, False, False],
+                [False,  True, False],
+                [ True, False, False],
+                [False,  True, False],
+                [ True, False, False],
+                [ True, False, False],
+                [ True, False, False],
+                [ True, False, False],
+                [ True, False, False],
+                [False,  True, False],
+                [False, False, False],
+                [False,  True, False],
+                [ True, False, False],
+                [False,  True, False],
+                [ True, False, False],
+                [ True, False, False],
                 [ True, False, False]]),
             'coefficient_threshold': 0.1,
             'epoch_size': 512000,
@@ -121,4 +139,4 @@ def test_order1():
         optim.step()
 
 if __name__ == '__main__':
-    test_order1()
+    test_order2()
