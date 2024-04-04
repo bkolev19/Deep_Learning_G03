@@ -128,76 +128,13 @@ class Autoencoder(torch.nn.Module):
             ddx (torch.Tensor): Second derivative of the input data
         Returns:
             torch.Tensor: Derivatives of the latent state"""
-        #first_grads = torch.autograd.grad(self.encoder(x), x, grad_outputs=torch.ones(self.encoder(x).shape), create_graph=True)[0]
-
-        if x.shape[0] == 1:
-            grads_list = []
-            x_temp = x
-            x_temp.requires_grad = True
-            z_temp = self.encoder(x_temp)
-            # Compute gradient for each output element
-            for i in range(z_temp.size(1)):
-                grad_outputs = torch.zeros_like(z_temp)
-                grad_outputs[:,i] = 1
-                grads = torch.autograd.grad(outputs=z_temp, inputs=x_temp,
-                                            grad_outputs=grad_outputs,
-                                            create_graph=True, retain_graph=True)[0]
-                grads_list.append(grads)
-            first_grads = torch.cat(grads_list, dim=0)
-            dz = torch.matmul(first_grads, dx.T).squeeze().unsqueeze(0)
-
-            if ddx is not None:
-                x_temp = x
-                x_temp.requires_grad = True
-                grads2_list = []
-                for i in range(dz.size(1)):
-                    grad_outputs = torch.zeros_like(dz)
-                    grad_outputs[:,i] = 1
-                    grads = torch.autograd.grad(outputs=dz, inputs=x_temp,
-                                                grad_outputs=grad_outputs,
-                                                create_graph=True, retain_graph=True)[0]
-                    grads2_list.append(grads)
-                second_grads = torch.cat(grads2_list, dim=0)
-                ddz = torch.matmul(second_grads, ddx.T).squeeze().unsqueeze(0)
-            else:
-                ddz = None
-
+        layers = list(self.encoder.children())
+        if self.params['model_order'] == 1:
+            dz = derivative(x, dx, layers, self.activation, self.act_func)
+            ddz = None
         else:
-            dz = torch.zeros_like(self.z)
-            for i in range(x.shape[0]):
-                x_temp = x[i].unsqueeze(0)
-                x_temp.requires_grad = True
-                z_temp = self.encoder(x_temp)
-                # Compute gradient for each output element
-                grads_list = []
-                for j in range(z_temp.size(1)):
-                    grad_outputs = torch.zeros_like(z_temp)
-                    grad_outputs[:,j] = 1
-                    grads = torch.autograd.grad(outputs=z_temp, inputs=x_temp,
-                                                grad_outputs=grad_outputs,
-                                                create_graph=True, retain_graph=True)[0]
-                    grads_list.append(grads)
-                first_grads = torch.cat(grads_list, dim=0)
-                dz[i] = torch.matmul(first_grads, dx[i].unsqueeze(0).T).squeeze()
-            if ddx is not None:
-                for i in range(x.shape[0]):
-                    x_temp = x
-                    x_temp.requires_grad = True
-                    dz_temp = dz[i].unsqueeze(0)
-                    z_temp = self.encoder(x_temp)
-                    grads2_list = []
-                    for i in range(dz_temp.size(1)):
-                        grad_outputs = torch.zeros_like(dz_temp)
-                        grad_outputs[:,i] = 1
-                        grads = torch.autograd.grad(outputs=dz_temp, inputs=x_temp,
-                                                    grad_outputs=grad_outputs,
-                                                    create_graph=True, retain_graph=True)[0]
-                        grads2_list.append(grads)
-                    second_grads = torch.cat(grads2_list, dim=0)
-                    ddz[i] = torch.matmul(second_grads, ddx[i].unsqueeze(0).T).squeeze()
-            else:
-                ddz = None
-        
+            dz, ddz = derivative_order2(x, dx, ddx, layers, self.activation, self.act_func)
+
         return dz, ddz
 
     def compute_derivatives_z2x(self, z, dz, ddz=None):
@@ -208,71 +145,13 @@ class Autoencoder(torch.nn.Module):
             ddz (torch.Tensor): Second derivative of the latent state
         Returns:
             torch.Tensor: Derivatives of the input data"""
-        if z.shape[0] == 1:
-            grads_list = []
-            z_temp = z
-            x_temp = self.decoder(z_temp)
-            # Compute gradient for each output element
-            for i in range(x_temp.size(1)):
-                grad_outputs = torch.zeros_like(x_temp)
-                grad_outputs[:,i] = 1
-                grads = torch.autograd.grad(outputs=x_temp, inputs=z_temp,
-                                            grad_outputs=grad_outputs,
-                                            create_graph=True, retain_graph=True)[0]
-                grads_list.append(grads)
-            first_grads = torch.cat(grads_list, dim=0)
-            dx = torch.matmul(first_grads, dz.T).squeeze().unsqueeze(0)
-
-            if ddz is not None:
-                z_temp = z
-                grads2_list = []
-                for i in range(dx.size(1)):
-                    grad_outputs = torch.zeros_like(dx)
-                    grad_outputs[:,i] = 1
-                    grads = torch.autograd.grad(outputs=dx, inputs=z_temp,
-                                                grad_outputs=grad_outputs,
-                                                create_graph=True, retain_graph=True)[0]
-                    grads2_list.append(grads)
-                second_grads = torch.cat(grads2_list, dim=0)
-                ddx = torch.matmul(second_grads, ddz.T).squeeze().unsqueeze(0)
-            else:
-                ddx = None
-
+        layers = list(self.decoder.children())
+        if self.params['model_order'] == 1:
+            dx = derivative(z, dz, layers, self.activation, self.act_func)
+            ddx = None
         else:
-            dx = torch.zeros_like(self.x)
-            for i in range(z.shape[0]):
-                z_temp = z[i].unsqueeze(0)
-                x_temp = self.decoder(z_temp)
-                # Compute gradient for each output element
-                grads_list = []
-                for j in range(x_temp.size(1)):
-                    grad_outputs = torch.zeros_like(x_temp)
-                    grad_outputs[:,j] = 1
-                    grads = torch.autograd.grad(outputs=x_temp, inputs=z_temp,
-                                                grad_outputs=grad_outputs,
-                                                create_graph=True, retain_graph=True)[0]
-                    grads_list.append(grads)
-                first_grads = torch.cat(grads_list, dim=0)
-                dx[i] = torch.matmul(first_grads, dz[i].unsqueeze(0).T).squeeze()
-            if ddz is not None:
-                for i in range(z.shape[0]):
-                    z_temp = z
-                    z_temp.requires_grad = True
-                    dx_temp = dx[i].unsqueeze(0)
-                    x_temp = self.decoder(z_temp)
-                    grads2_list = []
-                    for i in range(dx_temp.size(1)):
-                        grad_outputs = torch.zeros_like(dx_temp)
-                        grad_outputs[:,i] = 1
-                        grads = torch.autograd.grad(outputs=dx_temp, inputs=z_temp,
-                                                    grad_outputs=grad_outputs,
-                                                    create_graph=True, retain_graph=True)[0]
-                        grads2_list.append(grads)
-                    second_grads = torch.cat(grads2_list, dim=0)
-                    ddx[i] = torch.matmul(second_grads, ddz[i].unsqueeze(0).T).squeeze()
-            else:
-                ddx = None
-        
+            dx, ddx = derivative_order2(z, dz, ddz, layers, self.activation, self.act_func)
+
         return dx, ddx
 
     def sindy(self, mask, secondOrder=False):
@@ -345,6 +224,79 @@ class Autoencoder(torch.nn.Module):
 
         return loss
 
+
+# Extra derivative functins
+def derivative_order2(input, dx, ddx, layers, activation, act_func):
+    dz = dx
+    ddz = ddx
+    for i, layer in enumerate(layers):
+        if i < len(layers) - 1:
+            input = layer(input)
+
+            if activation == 'elu':
+                # ELU derivative: exp(input) if input < 0 else 1
+                elu_derivative = torch.where(input < 0, torch.exp(input), torch.tensor(1.0))
+                elu_double_derivative = torch.where(input < 0, torch.exp(input), torch.tensor(0.0))
+                
+                dz_prev = layer(dz)
+                ddz_prev = layer(ddz)
+
+                # Apply the chain rule for the first and second derivative
+                dz = elu_derivative * dz_prev
+                ddz = elu_double_derivative * dz_prev * dz_prev + elu_derivative * ddz_prev
+
+                input = act_func(input)
+
+            elif activation == 'relu':
+                # ReLU derivative: 1 if input > 0 else 0
+                relu_derivative = (input > 0).float()
+                relu_double_derivative = torch.zeros_like(input) # second derivative of ReLU is 0
+
+                dz_prev = layer(dz)
+                ddz_prev = layer(ddz)
+
+                # Apply the chain rule for the first and second derivative
+                dz = relu_derivative * dz_prev
+                ddz = relu_double_derivative * dz_prev * dz_prev + relu_derivative * ddz_prev
+
+                input = act_func(input)
+
+            elif activation == 'sigmoid':
+                # Sigmoid derivative: sigmoid(input) * (1 - sigmoid(input))
+                sigmoid_derivative = act_func(input) * (1 - act_func(input))
+                sigmoid_double_derivative = act_func(input) * (1 - act_func(input)) * (1 - 2 * act_func(input))
+
+                dz_prev = layer(dz)
+                ddz_prev = layer(ddz)
+
+                # Apply the chain rule for the first and second derivative
+                dz = sigmoid_derivative * dz_prev
+                ddz = sigmoid_double_derivative * dz_prev * dz_prev + sigmoid_derivative * ddz_prev
+
+                input = act_func(input)
+
+            # Add other activation conditions here
+        else:
+            dz = layer(dz)
+            ddz = layer(ddz)
+
+    return dz, ddz
+
+def derivative(input, dx, layers, activation, act_func):
+    dz = dx
+    for i, layer in enumerate(layers):
+        if i < len(layers) - 1:
+            input = layer(input)
+            if activation == 'elu':
+                dz = torch.where(input < 0, torch.exp(input), torch.ones_like(input)) * layer(dz)
+            elif activation == 'relu':
+                dz = (input > 0).float() * layer(dz)
+            elif activation == 'sigmoid':
+                dz = act_func(input) * (1 - torch.sigmoid(input)) * layer(dz)
+            input = act_func(input)
+        else:
+            dz = layer(dz)
+    return dz
 
 
 # Extra functions (SINDY)
