@@ -37,12 +37,12 @@ def create_feed_dictionary(data, params, idxs=None):
 
 
 def train_network(training_data, val_data, params, device: torch.device = device):
-    model       = Autoencoder(params)
+    model       = Autoencoder(params.to(device))
     model.train()
     optimizer   = torch.optim.Adam(model.parameters(), 0.001)
     batch_iter  = params['epoch_size']//params['batch_size']
 
-    validation_dict   = create_feed_dictionary(val_data, params, idxs=None)
+    validation_dict   = create_feed_dictionary(val_data.to(device), params, idxs=None)
     x_norm            = np.mean(val_data['x']**2)
     
     if params['model_order'] == 1:
@@ -79,7 +79,7 @@ def train_network(training_data, val_data, params, device: torch.device = device
     
     # Save the model
     MODEL_PATH = params['data_path'] + params['save_name']
-    torch.save(model.state_dict(), MODEL_PATH)
+    torch.save(model.state_dict(), (MODEL_PATH + '.pth'))
 
     if params['model_order'] == 1:
         sindy_predict_norm_z = np.mean((model.dz)**2)
