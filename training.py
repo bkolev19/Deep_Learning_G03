@@ -52,10 +52,10 @@ def train_network(training_data, val_data, params):
     torch.save(model.state_dict(), MODEL_PATH)
 
     if params['model_order'] == 1:
-        sindy_predict_norm_z = np.mean(model.dz, feed_dict=validation_dict)**2
+        sindy_predict_norm_z = np.mean((model.dz, feed_dict=validation_dict)**2)
     else:
-        sindy_predict_norm_z = np.mean(model.ddz, feed_dict=validation_dict)**2
-    sindy_coefficients = model.sindy_coefficients, feed_dict={}
+        sindy_predict_norm_z = np.mean((model.ddz, feed_dict=validation_dict)**2)
+    sindy_coefficients = model.sindy_coefficients
     
 
     results_dict = {}
