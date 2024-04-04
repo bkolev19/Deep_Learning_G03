@@ -20,6 +20,7 @@ class Autoencoder(torch.nn.Module):
         self.hidden_dims = params['widths']
         self.latent_dim = params['latent_dim']
         self.activation = params['activation']
+        self.model_order = params["model_order"]
 
         if self.activation == "sigmoid":
                 self.act_func = torch.nn.Sigmoid()
@@ -38,7 +39,7 @@ class Autoencoder(torch.nn.Module):
         self.include_sine = params['include_sine']
         
         self.coeff_init = params['coefficient_initialization']
-        self.library_dim = library_size(self.latent_dim, self.poly_order, self.include_sine)
+        self.library_dim = library_size(self.latent_dim * self.model_order, self.poly_order, self.include_sine)
         
         # Initialize coefficients
         if self.coeff_init == "xavier":
@@ -224,7 +225,6 @@ class Autoencoder(torch.nn.Module):
 
             if ddz is not None:
                 z_temp = z
-                z_temp.requires_grad = True
                 grads2_list = []
                 for i in range(dx.size(1)):
                     grad_outputs = torch.zeros_like(dx)
