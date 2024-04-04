@@ -4,6 +4,22 @@ import torch.optim as optim
 from tqdm import tqdm
 import numpy as np
 from autoencoder import Autoencoder
+import os
+
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"  
+os.environ["CUDA_VISIBLE_DEVICES"]="0" # GPU index
+
+print("Available GPUs:", torch.cuda.device_count())
+for i in range(torch.cuda.device_count()):
+    print(f"GPU {i}: {torch.cuda.get_device_name(i)}")
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+torch.cuda.set_device(device)
+print(device)
+
+torch.manual_seed(seed=42)
+torch.cuda.manual_seed(seed=42)
+
 
 
 def create_feed_dictionary(data, params, idxs=None):
@@ -20,8 +36,9 @@ def create_feed_dictionary(data, params, idxs=None):
     return feed_dict
 
 
-def train_network(training_data, val_data, params):
+def train_network(training_data, val_data, params, device: torch.device = device):
     model       = Autoencoder(params)
+    model.train()
     optimizer   = torch.optim.Adam(model.parameters(), 0.001)
     batch_iter  = params['epoch_size']//params['batch_size']
 
@@ -41,7 +58,7 @@ def train_network(training_data, val_data, params):
     for i in range(params['max_epochs']):
         for j in tqdm(range(batch_iter), desc='Batch_Loop'):
             batch_idxs = np.arange(j*params['batch_size'], (j+1)*params['batch_size'])
-            train_dict = create_feed_dictionary(training_data, params, idxs=batch_idxs)
+            train_dict = create_feed_dictionary(training_data.to(device), params, idxs=batch_idxs)
             x          = train_dict['x:0']
             dx         = train_dict['dx:0']
 
@@ -65,9 +82,9 @@ def train_network(training_data, val_data, params):
     torch.save(model.state_dict(), MODEL_PATH)
 
     if params['model_order'] == 1:
-        sindy_predict_norm_z = np.mean((model.dz(validation_dict['dx'])**2)) 
+        sindy_predict_norm_z = np.mean((model.dz)**2)
     else:
-        sindy_predict_norm_z = np.mean((model.ddz(validation_dict['ddx']))**2)
+        sindy_predict_norm_z = np.mean((model.ddz)**2)
     sindy_coefficients = model.sindy_coefficients
     
 
