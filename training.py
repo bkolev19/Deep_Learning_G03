@@ -15,17 +15,25 @@ for i in range(torch.cuda.device_count()):
 
 cuda_id = torch.cuda.current_device()
 print(f"ID of current CUDA device:{torch.cuda.current_device()}")
-       
 print(f"Name of current CUDA device:{torch.cuda.get_device_name(cuda_id)}")
+
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 torch.cuda.set_device(device)
-print(device)
 
 torch.manual_seed(seed=42)
 torch.cuda.manual_seed(seed=42)
 
 
+
+def move_tensors_to_device(data_dict, device):
+    """
+    Move all tensors within a dictionary to the specified device.
+    """
+    for key in data_dict:
+        if isinstance(data_dict[key], torch.Tensor):
+            data_dict[key] = data_dict[key].to(device)
+    return data_dict
 
 
 def create_feed_dictionary(data, params, idxs=None):
@@ -43,25 +51,15 @@ def create_feed_dictionary(data, params, idxs=None):
     return feed_dict
 
 
-def move_tensors_to_device(data_dict, device):
-    """
-    Move all tensors within a dictionary to the specified device.
-    """
-    for key in data_dict:
-        if isinstance(data_dict[key], torch.Tensor):
-            data_dict[key] = data_dict[key].to(device)
-    return data_dict
 
 def train_network(training_data, val_data, params, device: torch.device = device):
-    
-    
     training_data   = move_tensors_to_device(training_data ,device)
     val_data        = move_tensors_to_device(val_data, device)
     params          = move_tensors_to_device(params, device)
 
     model       = Autoencoder(params)
     # model.train()
-    optimizer   = torch.optim.Adam(model.parameters(), 0.001)
+    optimizer   = torch.optim.Adam(model.parameters(), params['learning_rate'])
     batch_iter  = params['epoch_size']//params['batch_size']
 
     validation_dict   = create_feed_dictionary(val_data, params, idxs=None)
@@ -99,6 +97,24 @@ def train_network(training_data, val_data, params, device: torch.device = device
             validation_dict['coefficient_mask:0'] = params['coefficient_mask']
             print('THRESHOLDING: %d active coefficients' % np.sum(params['coefficient_mask']))
             sindy_model_terms.append(np.sum(params['coefficient_mask']))
+        
+        final_losses.append(loss.detach().cpu().numpy())
+
+    for i in tqdm(range(params['refinement_epochs']), desc='Refined_Epochs_Loop'):
+        for j in (range(batch_iter)):
+            batch_idxs = np.arange(j*params['batch_size'], (j+1)*params['batch_size'])
+            train_dict = create_feed_dictionary(training_data, params, idxs=batch_idxs)
+            x          = train_dict['x']
+            dx         = train_dict['dx']
+
+            model.forward([x, dx])
+            loss = model.loss_func()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        if params['print_progress'] and (i % params['print_frequency'] == 0):
+            validation_losses.append(loss.detach().cpu().numpy())   
         
         final_losses.append(loss.detach().cpu().numpy())
 

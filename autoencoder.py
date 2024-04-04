@@ -5,6 +5,7 @@ import torch
 from scipy.special import binom
 
 
+
 class Autoencoder(torch.nn.Module):
     def __init__(self, params):
         """Autoencoder Initializer
@@ -37,10 +38,13 @@ class Autoencoder(torch.nn.Module):
         # Sindy params
         self.poly_order = params['poly_order']
         self.include_sine = params['include_sine']
+        # self.sindy_coefficients = torch.nn.Parameter(torch.Tensor(self.library_dim, self.latent_dim)) # ADDED
         
         self.coeff_init = params['coefficient_initialization']
         self.library_dim = library_size(self.latent_dim * self.model_order, self.poly_order, self.include_sine)
         
+
+
         # Initialize coefficients
         if self.coeff_init == "xavier":
             self.sindy_coefficients = torch.nn.init.xavier_uniform( torch.empty(self.library_dim, self.latent_dim))
@@ -93,6 +97,7 @@ class Autoencoder(torch.nn.Module):
             mask (torch.Tensor): Coefficient mask for SINDy
         Returns:
             torch.Tensor: Reconstructed input data"""
+
         # Get initial data
         if self.params['model_order'] == 2:
             self.x, self.dx, self.ddx = state
