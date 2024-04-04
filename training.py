@@ -4,8 +4,6 @@ import torch.optim as optim
 from tqdm import tqdm
 import numpy as np
 from autoencoder import Autoencoder
-    
-batch_size = 32
 
 
 def create_feed_dictionary(data, params, idxs=None):
@@ -28,15 +26,15 @@ def train_network(training_data, val_data, params):
     batch_iter  = params['epoch_size']//params['batch_size']
 
     validation_dict   = create_feed_dictionary(val_data, params, idxs=None)
-    x_norm            = torch.mean(val_data['x']**2)
+    x_norm            = np.mean(val_data['x']**2)
     
     if params['model_order'] == 1:
-        sindy_predict_norm_x = torch.mean(val_data['dx']**2)
+        sindy_predict_norm_x = np.mean(val_data['dx']**2)
     else:
-        sindy_predict_norm_x = torch.mean(val_data['ddx']**2)
+        sindy_predict_norm_x = np.mean(val_data['ddx']**2)
 
     validation_losses = []
-    sindy_model_terms = [torch.sum(params['coefficient_mask'])]
+    sindy_model_terms = [np.sum(params['coefficient_mask'])]
 
 
 
@@ -67,9 +65,9 @@ def train_network(training_data, val_data, params):
     torch.save(model.state_dict(), MODEL_PATH)
 
     if params['model_order'] == 1:
-        sindy_predict_norm_z = torch.mean((model.dz(validation_dict['dz'])**2)) 
+        sindy_predict_norm_z = np.mean((model.dz(validation_dict['dx'])**2)) 
     else:
-        sindy_predict_norm_z = torch.mean((model.ddz(validation_dict['ddz']))**2)
+        sindy_predict_norm_z = np.mean((model.ddz(validation_dict['ddx']))**2)
     sindy_coefficients = model.sindy_coefficients
     
 
