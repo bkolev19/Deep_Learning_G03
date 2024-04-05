@@ -60,11 +60,12 @@ class Autoencoder(torch.nn.Module):
         if self.seq_thresholding:
             self.mask = params['coefficient_mask']
             self.sindy_w_mask = (self.sindy_coefficients * self.mask).float()
-            self.loss_func = self.custom_loss_refined
         else:
             self.mask = None
-            self.loss_func = self.custom_loss_unrefined
-        
+
+        # Loss 
+        self.loss_func = self.custom_loss_unrefined
+
         # Encoder
         encoder_layers = [torch.nn.Linear(self.input_dim, self.hidden_dims[0])]
         for i in range(len(self.hidden_dims)-1):

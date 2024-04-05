@@ -101,6 +101,7 @@ def train_network(training_data, val_data, params, device: torch.device = device
         final_losses.append(loss.detach().cpu().numpy())
 
     for i in tqdm(range(params['refinement_epochs']), desc='Refined_Epochs_Loop'):
+        model.loss_func = model.loss_func_refined ## ADD THIS FOR RENINED!!!
         for j in (range(batch_iter)):
             batch_idxs = np.arange(j*params['batch_size'], (j+1)*params['batch_size'])
             train_dict = create_feed_dictionary(training_data, params, idxs=batch_idxs)
