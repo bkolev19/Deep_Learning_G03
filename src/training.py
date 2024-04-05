@@ -11,7 +11,7 @@ def train_network(training_data, val_data, params):
     learning_rate = tf.placeholder(tf.float32, name='learning_rate')
     train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
     train_op_refinement = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss_refinement)
-    saver = tf.train.Saver(var_list=tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
+    # saver = tf.train.Saver(var_list=tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
 
     validation_dict = create_feed_dictionary(val_data, params, idxs=None)
 
@@ -24,7 +24,7 @@ def train_network(training_data, val_data, params):
     validation_losses = []
     sindy_model_terms = [np.sum(params['coefficient_mask'])]
 
-    print('TRAINING')
+    # print('TRAINING')
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         for i in range(params['max_epochs']):
@@ -42,7 +42,7 @@ def train_network(training_data, val_data, params):
                 print('THRESHOLDING: %d active coefficients' % np.sum(params['coefficient_mask']))
                 sindy_model_terms.append(np.sum(params['coefficient_mask']))
 
-        print('REFINEMENT')
+        # print('REFINEMENT')
         for i_refinement in range(params['refinement_epochs']):
             for j in range(params['epoch_size']//params['batch_size']):
                 batch_idxs = np.arange(j*params['batch_size'], (j+1)*params['batch_size'])
@@ -52,8 +52,8 @@ def train_network(training_data, val_data, params):
             if params['print_progress'] and (i_refinement % params['print_frequency'] == 0):
                 validation_losses.append(print_progress(sess, i_refinement, loss_refinement, losses, train_dict, validation_dict, x_norm, sindy_predict_norm_x))
 
-        saver.save(sess, params['data_path'] + params['save_name'])
-        pickle.dump(params, open(params['data_path'] + params['save_name'] + '_params.pkl', 'wb'))
+        # saver.save(sess, params['data_path'] + params['save_name'])
+        # pickle.dump(params, open(params['data_path'] + params['save_name'] + '_params.pkl', 'wb'))
         final_losses = sess.run((losses['decoder'], losses['sindy_x'], losses['sindy_z'],
                                  losses['sindy_regularization']),
                                 feed_dict=validation_dict)
@@ -70,10 +70,10 @@ def train_network(training_data, val_data, params):
         results_dict['sindy_predict_norm_z'] = sindy_predict_norm_z
         results_dict['sindy_coefficients'] = sindy_coefficients
         results_dict['loss_decoder'] = final_losses[0]
-        results_dict['loss_decoder_sindy'] = final_losses[1]
-        results_dict['loss_sindy'] = final_losses[2]
+        results_dict['loss_sindy_x'] = final_losses[1]
+        results_dict['loss_sindy_z'] = final_losses[2]
         results_dict['loss_sindy_regularization'] = final_losses[3]
-        results_dict['validation_losses'] = np.array(validation_losses)
+        results_dict['validation_losses'] = np.array(validation_losses[0])
         results_dict['sindy_model_terms'] = np.array(sindy_model_terms)
 
         return results_dict
@@ -97,8 +97,8 @@ def print_progress(sess, i, loss, losses, train_dict, validation_dict, x_norm, s
     Returns:
         Tuple of losses calculated on the validation set.
     """
-    training_loss_vals = sess.run((loss,) + tuple(losses.values()), feed_dict=train_dict)
-    validation_loss_vals = sess.run((loss,) + tuple(losses.values()), feed_dict=validation_dict)
+    training_loss_vals = sess.run((loss,), feed_dict=train_dict)
+    validation_loss_vals = sess.run((loss,), feed_dict=validation_dict)
     print("Epoch %d" % i)
     print("   training loss {0}, {1}".format(training_loss_vals[0],
                                              training_loss_vals[1:]))
