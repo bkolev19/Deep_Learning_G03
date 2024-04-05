@@ -92,15 +92,17 @@ def train_network(training_data, val_data, params, device: torch.device = device
         if params['print_progress'] and (i % params['print_frequency'] == 0):
             validation_losses.append(loss.detach().cpu().numpy())
 
+        # HERE ALL THE MODEL.MASK USED TO BE PARAMS['COEFFICIENT_MASK'], BUT THAT DOES NOT UPDATE THE MODEL
         if params['sequential_thresholding'] and (i % params['threshold_frequency'] == 0) and (i > 0):
-            params['coefficient_mask'] = np.abs(model.sindy_coefficients) > params['coefficient_threshold']
-            validation_dict['coefficient_mask:0'] = params['coefficient_mask']
-            print('THRESHOLDING: %d active coefficients' % np.sum(params['coefficient_mask']))
-            sindy_model_terms.append(np.sum(params['coefficient_mask']))
+            model.mask = np.abs(model.sindy_coefficients) > params['coefficient_threshold']
+            params['coefficient_mask'] = model.mask
+            validation_dict['coefficient_mask:0'] = model.mask
+            print('THRESHOLDING: %d active coefficients' % np.sum(model.mask))
+            sindy_model_terms.append(np.sum(model.mask))
         
         final_losses.append(loss.detach().cpu().numpy())
 
-    model.loss_func = model.custom_loss_refined ## ADD THIS FOR RENINED!!!
+    model.loss_func = model.custom_loss_refined ## ADD THIS FOR REFINED!!!
     for i in tqdm(range(params['refinement_epochs']), desc='Refined_Epochs_Loop'):
         for j in (range(batch_iter)):
             batch_idxs = np.arange(j*params['batch_size'], (j+1)*params['batch_size'])

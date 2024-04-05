@@ -59,7 +59,6 @@ class Autoencoder(torch.nn.Module):
         self.seq_thresholding = params['sequential_thresholding']
         if self.seq_thresholding:
             self.mask = params['coefficient_mask']
-            self.sindy_w_mask = (self.sindy_coefficients * self.mask).float()
         else:
             self.mask = None
 
@@ -90,6 +89,15 @@ class Autoencoder(torch.nn.Module):
 
         self.decoder = torch.nn.Sequential(*decoder_layers)
 
+    @property
+    def mask(self):
+        return self._mask
+    
+    @mask.setter
+    def mask(self, mask):
+        self._mask = mask
+        if mask is not None:
+            self.sindy_w_mask = (self.sindy_coefficients * mask).float()
 
     def forward(self, state, mask=None):
         """Forward pass for the autoencoder
@@ -175,7 +183,6 @@ class Autoencoder(torch.nn.Module):
         if self.seq_thresholding:
             if mask is not None:
                 self.mask = mask
-                self.sindy_w_mask = (self.sindy_coefficients * self.mask).float()
             return torch.matmul(Theta, self.sindy_w_mask)
         else:
             return torch.matmul(Theta, self.sindy_coefficients)
