@@ -55,6 +55,8 @@ class Autoencoder(torch.nn.Module):
         elif self.coeff_init == "specified":
             self.sindy_coefficients = torch.tensor(params['init_coefficients'])
 
+        self.original_coefficients = self.sindy_coefficients.clone()
+
         # Sequential thresholding
         self.seq_thresholding = params['sequential_thresholding']
         if self.seq_thresholding:
@@ -97,7 +99,7 @@ class Autoencoder(torch.nn.Module):
     def mask(self, mask):
         self._mask = mask
         if mask is not None:
-            self.sindy_w_mask = (self.sindy_coefficients * mask).float()
+            self.sindy_coefficients = (self.original_coefficients * mask).float()
 
     def forward(self, state, mask=None):
         """Forward pass for the autoencoder
@@ -183,9 +185,7 @@ class Autoencoder(torch.nn.Module):
         if self.seq_thresholding:
             if mask is not None:
                 self.mask = mask
-            return torch.matmul(Theta, self.sindy_w_mask)
-        else:
-            return torch.matmul(Theta, self.sindy_coefficients)
+        return torch.matmul(Theta, self.sindy_coefficients)
 
     # Loss
     # Call self.loss_func() to get the loss, rather than the specific loss function
