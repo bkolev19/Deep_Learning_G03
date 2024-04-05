@@ -44,18 +44,16 @@ class Autoencoder(torch.nn.Module):
         self.library_dim = library_size(self.latent_dim * self.model_order, self.poly_order, self.include_sine)
         
 
-
+        self.sindy_coefficients = torch.nn.Parameter(torch.Tensor(self.library_dim, self.latent_dim))
         # Initialize coefficients
         if self.coeff_init == "xavier":
-            self.sindy_coefficients = torch.nn.init.xavier_uniform( torch.empty(self.library_dim, self.latent_dim))
+            torch.nn.init.xavier_uniform_(self.sindy_coefficients)
         elif self.coeff_init == "normal":
-            self.sindy_coefficients = torch.nn.init.normal_( torch.empty(self.library_dim, self.latent_dim))
+            torch.nn.init.normal_(self.sindy_coefficients)
         elif self.coeff_init == "constant":
-            self.sindy_coefficients = torch.nn.init.constant_( torch.empty(self.library_dim, self.latent_dim), 1.0)
+            torch.nn.init.constant_(self.sindy_coefficients, 1.0)
         elif self.coeff_init == "specified":
-            self.sindy_coefficients = torch.tensor(params['init_coefficients'])
-
-        self.original_coefficients = self.sindy_coefficients.clone()
+            torch.nn.init.constant_(self.sindy_coefficients, params['specified_coefficient'])
 
         # Sequential thresholding
         self.seq_thresholding = params['sequential_thresholding']
@@ -99,7 +97,7 @@ class Autoencoder(torch.nn.Module):
     def mask(self, mask):
         self._mask = mask
         if mask is not None:
-            self.sindy_coefficients = (self.original_coefficients * mask).float()
+            self.sindy_coefficients = (self.sindy_coefficients * mask).float()
 
     def forward(self, state, mask=None):
         """Forward pass for the autoencoder
