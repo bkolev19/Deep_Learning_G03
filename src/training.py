@@ -73,7 +73,7 @@ def train_network(training_data, val_data, params):
         results_dict['loss_sindy_x'] = final_losses[1]
         results_dict['loss_sindy_z'] = final_losses[2]
         results_dict['loss_sindy_regularization'] = final_losses[3]
-        results_dict['validation_losses'] = np.array(validation_losses[0])
+        results_dict['validation_losses'] = np.average(np.array(validation_losses))
         results_dict['sindy_model_terms'] = np.array(sindy_model_terms)
 
         return results_dict
@@ -97,16 +97,16 @@ def print_progress(sess, i, loss, losses, train_dict, validation_dict, x_norm, s
     Returns:
         Tuple of losses calculated on the validation set.
     """
-    training_loss_vals = sess.run((loss,), feed_dict=train_dict)
+    # training_loss_vals = sess.run((loss,), feed_dict=train_dict)
     validation_loss_vals = sess.run((loss,), feed_dict=validation_dict)
-    print("Epoch %d" % i)
-    print("   training loss {0}, {1}".format(training_loss_vals[0],
-                                             training_loss_vals[1:]))
-    print("   validation loss {0}, {1}".format(validation_loss_vals[0],
-                                               validation_loss_vals[1:]))
-    decoder_losses = sess.run((losses['decoder'], losses['sindy_x']), feed_dict=validation_dict)
-    loss_ratios = (decoder_losses[0]/x_norm, decoder_losses[1]/sindy_predict_norm)
-    print("decoder loss ratio: %f, decoder SINDy loss  ratio: %f" % loss_ratios)
+    # print("Epoch %d" % i)
+    # print("   training loss {0}, {1}".format(training_loss_vals[0],
+    #                                          training_loss_vals[1:]))
+    # print("   validation loss {0}, {1}".format(validation_loss_vals[0],
+    #                                            validation_loss_vals[1:]))
+    # decoder_losses = sess.run((losses['decoder'], losses['sindy_x']), feed_dict=validation_dict)
+    # loss_ratios = (decoder_losses[0]/x_norm, decoder_losses[1]/sindy_predict_norm)
+    # print("decoder loss ratio: %f, decoder SINDy loss  ratio: %f" % loss_ratios)
     return validation_loss_vals
 
 
