@@ -5,7 +5,6 @@ import torch
 from scipy.special import binom
 
 
-
 class Autoencoder(torch.nn.Module):
     def __init__(self, params):
         """Autoencoder Initializer
@@ -173,9 +172,10 @@ class Autoencoder(torch.nn.Module):
         if self.seq_thresholding:
             if mask is not None:
                 self.mask = mask
-            return torch.matmul(Theta, self.sindy_coefficients * self.mask)
+            mask_np = torch.tensor(self.mask)
+            return torch.matmul(Theta, (self.sindy_coefficients * mask_np).float())
         else:
-            return torch.matmul(Theta, self.sindy_coefficients)
+            return torch.matmul(Theta, self.sindy_coefficients.float())
 
     # Loss
     # Call self.loss_func() to get the loss, rather than the specific loss function
@@ -226,8 +226,7 @@ class Autoencoder(torch.nn.Module):
                + self.lambda_3 * losses_sindy_regularization
 
         return loss
-
-
+                    
 # Extra derivative functins
 def derivative_order2(input, dx, ddx, layers, activation, act_func):
     dz = dx
@@ -366,6 +365,7 @@ def sindy_library_torch(z, latent_dim, poly_order, include_sine=False):
 
     return torch.stack(library, dim=1)
 
+
 def sindy_library_torch_order2(z, dz, latent_dim, poly_order, include_sine=False):
     """
     Build the SINDy library for a second order system. This is essentially the same as for a first
@@ -409,3 +409,4 @@ def sindy_library_torch_order2(z, dz, latent_dim, poly_order, include_sine=False
             library.append(torch.sin(z_combined[:,i]))
 
     return torch.stack(library, dim=1)
+
