@@ -94,11 +94,15 @@ def train_network(training_data, val_data, params, device: torch.device = device
 
         # HERE ALL THE MODEL.MASK USED TO BE PARAMS['COEFFICIENT_MASK'], BUT THAT DOES NOT UPDATE THE MODEL
         if params['sequential_thresholding'] and (i % params['threshold_frequency'] == 0) and (i > 0):
-            model.mask = np.abs(model.sindy_coefficients) > params['coefficient_threshold']
-            params['coefficient_mask'] = model.mask
-            validation_dict['coefficient_mask:0'] = model.mask
-            print('THRESHOLDING: %d active coefficients' % np.sum(model.mask))
-            sindy_model_terms.append(np.sum(model.mask))
+            # Get numpy copy from tensor model.sindy_coefficients and save different stuff. DONT TOUCH
+            sindy_coeffs_copy = model.sindy_coefficients.clone().detach()
+            temp_mask = np.abs(sindy_coeffs_copy) > params['coefficient_threshold']
+            model.mask = temp_mask
+            temp_mask = temp_mask.numpy()
+            params['coefficient_mask'] = temp_mask
+            validation_dict['coefficient_mask:0'] = temp_mask
+            print('THRESHOLDING: %d active coefficients' % np.sum(temp_mask))
+            sindy_model_terms.append(np.sum(temp_mask))
         
         final_losses.append(loss.detach().cpu().numpy())
 
