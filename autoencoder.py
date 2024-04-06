@@ -57,7 +57,7 @@ class Autoencoder(torch.nn.Module):
         # Sequential thresholding
         self.seq_thresholding = params['sequential_thresholding']
         if self.seq_thresholding:
-            self.mask = params['coefficient_mask']
+            self.mask = torch.tensor(params['coefficient_mask'])
         else:
             self.mask = None
 
@@ -171,9 +171,8 @@ class Autoencoder(torch.nn.Module):
         # Check if we need coefficient mask
         if self.seq_thresholding:
             if mask is not None:
-                self.mask = mask
-            mask_np = torch.tensor(self.mask)
-            return torch.matmul(Theta, (self.sindy_coefficients * mask_np).float())
+                self.mask = torch.tensor(mask)
+            return torch.matmul(Theta, (self.sindy_coefficients * self.mask).float())
         else:
             return torch.matmul(Theta, self.sindy_coefficients.float())
 
