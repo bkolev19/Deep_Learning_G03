@@ -159,10 +159,9 @@ def sindy_simulate(x0, t, Xi, poly_order, include_sine):
     m = t.size
     n = x0.size
     a_0 = sindy_library_torch(torch.tensor(x0).reshape((1,n)), poly_order, include_sine)
-    print(a_0)
-    print(Xi)
-    print(a_0.size())
-    f = lambda x,t : np.dot(sindy_library_torch(torch.tensor(x).reshape((1,n)), poly_order, include_sine), Xi).reshape((n,))
+    Xi = torch.tensor(Xi)
+    # f = lambda x,t : np.dot(sindy_library_torch(torch.tensor(x).reshape((1,n)), poly_order, include_sine), Xi).reshape((n,))
+    f = lambda x, t: torch.matmul(sindy_library_torch(torch.tensor(x).reshape((1, n)), poly_order, include_sine), Xi).reshape((n,))
 
     x = odeint(f, x0, t)
     return x
