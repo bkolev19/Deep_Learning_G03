@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from scipy.integrate import odeint
 from tqdm import tqdm
 import numpy as np
-from autoencoder import Autoencoder
+from autoencoder import Autoencoder, sindy_library_torch, sindy_library_torch_order2
 import os
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"  
@@ -72,6 +73,8 @@ def train_network(training_data, val_data, params, device: torch.device = device
 
     validation_losses = []
     final_losses      = []
+    refined_losses    = []
+    ref_val_loss      = []
     sindy_model_terms = [np.sum(params['coefficient_mask'])]
 
 
@@ -121,9 +124,9 @@ def train_network(training_data, val_data, params, device: torch.device = device
             optimizer.step()
 
         if params['print_progress'] and (i % params['print_frequency'] == 0):
-            validation_losses.append(loss.detach().cpu().numpy())   
+            ref_val_loss.append(loss.detach().cpu().numpy())   
         
-        final_losses.append(loss.detach().cpu().numpy())
+        refined_losses.append(loss.detach().cpu().numpy())
 
     # Save the model
     MODEL_PATH = params['data_path'] + params['save_name']
@@ -137,13 +140,39 @@ def train_network(training_data, val_data, params, device: torch.device = device
     
 
     results_dict = {}
-    results_dict['num_epochs'] = i
-    results_dict['x_norm'] = x_norm
-    results_dict['sindy_predict_norm_x'] = sindy_predict_norm_x
-    results_dict['sindy_predict_norm_z'] = sindy_predict_norm_z
-    results_dict['sindy_coefficients'] = sindy_coefficients
-    results_dict['loss_decoder'] = final_losses
-    results_dict['validation_losses'] = np.array(validation_losses)
-    results_dict['sindy_model_terms'] = np.array(sindy_model_terms)
+    results_dict['num_epochs']                  = i
+    results_dict['x_norm']                      = x_norm
+    results_dict['sindy_predict_norm_x']        = sindy_predict_norm_x
+    results_dict['sindy_predict_norm_z']        = sindy_predict_norm_z
+    results_dict['sindy_coefficients']          = sindy_coefficients
+    results_dict['loss_decoder']                = final_losses
+    results_dict['validation_losses']           = validation_losses
+    results_dict['sindy_model_terms']           = sindy_model_terms
+    results_dict['refined_losses']              = refined_losses
+    results_dict['refined_validation_losses']   = ref_val_loss
 
     return results_dict
+
+
+
+def sindy_simulate(x0, t, Xi, poly_order, include_sine):
+    m = t.size
+    n = x0.size
+    f = lambda x,t : np.dot(sindy_library_torch(np.array(x).reshape((1,n)), poly_order, include_sine), Xi).reshape((n,))
+
+    x = odeint(f, x0, t)
+    return x
+
+
+def sindy_simulate_order2(x0, dx0, t, Xi, poly_order, include_sine):
+    m = t.size
+    n = 2*x0.size
+    l = Xi.shape[0]
+
+    Xi_order1 = np.zeros((l,n))
+    for i in range(n//2):
+        Xi_order1[2*(i+1),i] = 1.
+        Xi_order1[:,i+n//2] = Xi[:,i]
+    
+    x = sindy_simulate(np.concatenate((x0,dx0)), t, Xi_order1, poly_order, include_sine)
+    return x
