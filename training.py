@@ -154,36 +154,3 @@ def train_network(training_data, val_data, params, device: torch.device = device
     return results_dict
 
 
-
-# def sindy_simulate(x0, t, Xi, poly_order, include_sine):
-#     m = t.size
-#     n = x0.size
-    
-#     a_0 = sindy_library_torch(torch.tensor(x0).reshape((1,n)), poly_order, include_sine)
-#     Xi = torch.tensor(Xi)
-#     # f = lambda x,t : np.dot(sindy_library_torch(torch.tensor(x).reshape((1,n)), poly_order, include_sine), Xi).reshape((n,))
-#     f = lambda x, t: torch.matmul(sindy_library_torch(torch.tensor(x).reshape((1, n)), poly_order, include_sine), Xi).reshape((n,))
-
-#     x = odeint(f, x0, t)
-#     return x
-
-# def sindy_simulate(x0, t, Xi, poly_order, include_sine):
-#     m = t.size
-#     n = x0.size
-#     f = lambda x,t : np.dot(sindy_library(np.array(x).reshape((1,n)), poly_order, include_sine), Xi).reshape((n,))
-
-#     x = odeint(f, x0, t)
-# #     return x
-
-# def sindy_simulate_order2(x0, dx0, t, Xi, poly_order, include_sine):
-#     m = t.size
-#     n = 2*x0.size
-#     l = Xi.shape[0]
-
-#     Xi_order1 = torch.zeros((l,n))
-#     for i in range(n//2):
-#         Xi_order1[2*(i+1),i] = 1.
-#         Xi_order1[:,i+n//2] = Xi[:,i]
-    
-#     x = sindy_simulate(np.concatenate((x0,dx0)), t, Xi_order1, poly_order, include_sine)
-#     return x
