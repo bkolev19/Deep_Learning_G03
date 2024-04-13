@@ -125,6 +125,17 @@ def train_network(training_data, val_data, params, device: torch.device = device
 
         if params['print_progress'] and (i % params['print_frequency'] == 0):
             ref_val_loss.append(loss.detach().cpu().numpy())   
+
+        if params['sequential_thresholding'] and (i % params['threshold_frequency'] == 0) and (i > 0):
+            # Get numpy copy from tensor model.sindy_coefficients and save different stuff. DONT TOUCH
+            sindy_coeffs_copy = model.sindy_coefficients.clone().detach()
+            temp_mask = np.abs(sindy_coeffs_copy) > params['coefficient_threshold']
+            model.mask = temp_mask
+            temp_mask = temp_mask.numpy()
+            params['coefficient_mask'] = temp_mask
+            validation_dict['coefficient_mask:0'] = temp_mask
+            print('THRESHOLDING: %d active coefficients' % np.sum(temp_mask))
+            sindy_model_terms.append(np.sum(temp_mask))
         
         refined_losses.append(loss.detach().cpu().numpy())
 
