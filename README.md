@@ -26,14 +26,14 @@ This is the set of packages used for running the repository. Some other versions
 | openssl               | 1.1.1w    | h2bbff1b_0           |
 
 ## Repository structure
-- .gitignore             Describes which files and directories Git should ignore.
-- Paper.pdf              The academic paper used as a basis.
-- autoencoder.py         Python script for implementing the autoencoder neural network class.
-- sindy_utils.py         Python utility script for Sparse Identification of Nonlinear Dynamics (SINDy) methods.
-- training.py            Python script for training models, includes cuda methods, feed dictionary, and train_network.
-- index.html             File used for the creation of the website.
-- Lorenz/                Directory with running example.
-  - example_lorenz.py    Script with utilities functions for Lorenz data.
-  - lorenz_analyse.ipynb Notebook analysing the resulting models.
-  - train_lorenz.ipynb   Notebook running the models for training.
-  - *Others              Files created after running the training, used for analysis.
+- `.gitignore`&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Describes which files and directories Git should ignore.
+- `Paper.pdf`&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The academic paper used as a basis.
+- `autoencoder.py`&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;   Python script for implementing the autoencoder neural network class.
+- `sindy_utils.py`&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;    Python utility script for Sparse Identification of Nonlinear Dynamics (SINDy) methods.
+- `training.py`&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Python script for training models, includes cuda methods, feed dictionary, and train_network.
+- `index.html`&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;    File used for the creation of the website.
+- `Lorenz/`&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Directory with running example.
+  - `example_lorenz.py`&emsp;&emsp;&emsp;&emsp;  Script with utilities functions for Lorenz data.
+  - `lorenz_analyse.ipynb`&emsp;&emsp;&emsp;Notebook analysing the resulting models.
+  - `train_lorenz.ipynb`&emsp;&emsp;&emsp;&emsp;Notebook running the models for training.
+  - `*Others`&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Files created after running the training, used for analysis.
