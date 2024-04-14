@@ -31,6 +31,7 @@ This is the set of packages used for running the repository. Some other versions
 - autoencoder.py         Python script for implementing the autoencoder neural network class.
 - sindy_utils.py         Python utility script for Sparse Identification of Nonlinear Dynamics (SINDy) methods.
 - training.py            Python script for training models, includes cuda methods, feed dictionary, and train_network.
+- index.html             File used for the creation of the website.
 - Lorenz/                Directory with running example.
   - example_lorenz.py    Script with utilities functions for Lorenz data.
   - lorenz_analyse.ipynb Notebook analysing the resulting models.
