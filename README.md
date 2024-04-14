@@ -1,5 +1,6 @@
 # Deep Learning Reproduction
-This repository aims to reproduce the paper "Data-driven discovery of coordinates and governing equations" by K. Champion et al. For more information, check the blog file in the repository.
+This repository aims to reproduce the paper "Data-driven discovery of coordinates and governing equations" by K. Champion et al. For more information, check the blog file in this link: https://bkolev19.github.io/Deep_Learning_G03/.
+
 By Boyan, Ana, Jasper, and Nikolaus
 
 ## Libraries
